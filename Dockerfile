@@ -1,34 +1,13 @@
-FROM golang:1.21 AS builder
+FROM voapi/voapi:latest
 
+# 可选：如果你需要在构建时执行任何操作，可以在这里添加
+# 例如，复制配置文件：
+# COPY ./config.json /app/config.json
+
+# 设置工作目录（可选，如果需要）
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+# 定义启动命令 (如果需要覆盖默认命令)
+CMD ["--log-dir", "/app/logs"]
 
-COPY . .
-
-RUN go build -o voapi .
-
-FROM alpine:latest
-
-WORKDIR /app
-
-COPY --from=builder /app/voapi .
-
-# 创建 logs 目录 (如果需要)
-RUN mkdir -p /app/logs
-# 创建 data 目录 (如果需要)
-RUN mkdir -p /app/data
-
-# 如果 data 目录包含初始化数据，并且需要复制到镜像中，
-# 确保 data 目录存在于你的 Git 仓库中，并且没有被 .gitignore 排除。
-# COPY data ./data
-
-ENV SQL_DSN=""
-ENV REDIS_CONN_STRING=""
-ENV SESSION_SECRET=""
-ENV TZ="Asia/Shanghai"
-
-EXPOSE 3000
-
-CMD ["./voapi", "--log-dir", "/app/logs"]
+# 健康检查已经在基础镜像中定义，或者可以通过Render的Web UI配置
